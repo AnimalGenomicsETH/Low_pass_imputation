@@ -11,7 +11,9 @@ rule all:
         SNP_stats = seq_data + "autosomes_33_biSNPs.stats",
         isec_stats = expand(seq_data + "query_isec/{isec}.stats", isec=[f'{i:04}' for i in range(4)]),
         sample_stats = expand(seq_data + "sample_vcfs/{sample}/{isec}.stats", sample = samples, isec=[f'{i:04}' for i in range(4)]),
-        chr_stats = expand(seq_data + "chromosome_vcfs/{chr}.stats", chr = chroms)
+        chr_stats = expand(seq_data + "chromosome_vcfs/{chr}.stats", chr = chroms),
+        seq_bed = seq_data + "intersections.bed",
+        seq_stats = seq_data + "intersections.txt"
 
 rule seq_samples:
     input:
@@ -146,4 +148,22 @@ rule seq_split_chr:
         bcftools {params.view_chr} {wildcards.chr} {input.vcf} {params.view_out} {output.vcf} \n \
         tabix {params.index} {output.vcf} \n \
         bcftools stats {output.vcf} > {output.stats} \n
+        '''
+
+rule bedtools_intersect:
+    input:
+        DV_vcf = DV_data + "autosomes_33_biSNPs.vcf.gz",
+        GATK_vcf = GATK_data + "autosomes_33_biSNPs.vcf.gz",
+        chip_vcf = chip + "chip_all_filtered.vcf.gz"
+    output:
+        stats = seq_data + "intersections.txt",
+        bed = seq_data + "intersections.bed"
+    threads: 2
+    resources:
+        mem_mb = 500,
+        walltime = '02:00'
+    shell:
+        '''
+        bedtools multiinter -cluster -i {input.DV_vcf} {input.GATK_vcf} {input.chip_vcf} | cut -f 5 | sort | uniq -c > {output.stats} \n \
+        bedtools multiinter -cluster -i {input.DV_vcf} {input.GATK_vcf} {input.chip_vcf} > {output.bed} \n
         '''
