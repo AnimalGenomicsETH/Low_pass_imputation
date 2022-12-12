@@ -25,8 +25,6 @@ if config.get("per_sample",True):
 else:
     ruleorder: deepvariant_postprocess > split_gvcf_chromosomes
 
-# include: 'mendelian.smk'
-
 wildcard_constraints:
      haplotype = r'asm|hap1|hap2|parent1|parent2',
      phase = r'unphased|phased',
@@ -97,7 +95,6 @@ rule deepvariant_make_examples:
     threads: 1
     resources:
         mem_mb = 6000,
-        # walltime = '8:00',
         walltime = '4:00',
         disk_scratch = 1,
         use_singularity = True
@@ -133,10 +130,8 @@ rule deepvariant_call_variants:
     threads: 24
     resources:
         mem_mb = 1000,
-        # mem_mb = 750,
         disk_scratch = 1,
         use_singularity = True,
-        # walltime = lambda wildcards: '4:00',
         walltime = lambda wildcards: '24:00',
         use_AVX512 = True
     shell:
@@ -191,7 +186,6 @@ rule split_gvcf_chromosomes:
     threads: 1
     resources:
         mem_mb = 3000,
-        # walltime = '25'
         walltime = '45'
     run:
         for chromosome in range(1,30):
@@ -212,7 +206,7 @@ rule GLnexus_merge_chrm:
         bed = lambda wildcards: '' if True else '--bed /data/BSW_autosome.bed',
         singularity_call = lambda wildcards: make_singularity_call(wildcards,'-B .:/data', input_bind=False, output_bind=False, work_bind=False),
         mem = lambda wildcards,threads,resources: threads*resources['mem_mb']/1000
-    threads: 12 #force using 4 threads for bgziping
+    threads: 12
     resources:
         mem_mb = 8000,
         disk_scratch = 150,
@@ -260,7 +254,7 @@ rule GLnexus_merge:
         DB = lambda wildcards, output: f'/tmp/GLnexus.DB',
         singularity_call = lambda wildcards: make_singularity_call(wildcards,'-B .:/data', input_bind=False, output_bind=False, work_bind=False),
         mem = lambda wildcards,threads,resources: threads*resources['mem_mb']/1024
-    threads: 32 #force using threads for bgziping
+    threads: 32
     resources:
         mem_mb = 7000,
         disk_scratch = 500,
