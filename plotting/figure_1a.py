@@ -16,8 +16,8 @@ norm = mpl.colors.Normalize(vmin=1,vmax=3)
 cmap = 'cividis'
 
 # make the figure, add the upsetplot
-fig = plt.figure(figsize=(9, 6))
-g = UpSet(a,sort_by='cardinality',show_counts='%.2f',element_size=None)
+fig = mpl.pyplot.figure(figsize=(9, 6))
+g = UpSet(upset,sort_by='cardinality',show_counts='%.2f',element_size=None)
 
 # colour the specific bars by the *HARDCODED* Ti:Tv ratio
 g.style_subsets(present="DV", absent="GATK", facecolor=mpl.cm.ScalarMappable(norm=norm, cmap=cmap).to_rgba(2.07))
